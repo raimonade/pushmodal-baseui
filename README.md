@@ -1,12 +1,12 @@
+![hero](github.png)
+<br />
+<br />
+
 # pushmodal (Base UI Port)
 
 A stack-based modal management library for React, built for [Base UI](https://base-ui.com/).
 
 > This is a port of the original [pushmodal](https://github.com/lindesvard/pushmodal) by [Carl Lindesvard](https://github.com/lindesvard), migrated from Radix UI to Base UI.
-
-## Why Base UI?
-
-Base UI is an unstyled component library from the MUI team that provides accessible, fully customizable primitives. This port allows you to use pushmodal's powerful modal management with Base UI's Dialog and [vaul-base](https://github.com/borabaloglu/vaul-base) Drawer components.
 
 ## Installation
 
