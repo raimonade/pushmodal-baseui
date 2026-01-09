@@ -1,3 +1,5 @@
+'use client';
+
 import { useLayoutEffect, useState } from 'react';
 
 type WrapperProps = {
@@ -7,11 +9,8 @@ type WrapperProps = {
   children?: React.ReactNode;
 };
 
-type ContentProps = {
-  className?: string;
-  children?: React.ReactNode;
-  onAnimationEnd?: (...args: any[]) => void;
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ContentProps = Record<string, any>;
 
 type Options = {
   mobile: {
