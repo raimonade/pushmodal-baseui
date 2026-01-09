@@ -1,10 +1,18 @@
-import { DialogContentProps, DialogProps } from '@radix-ui/react-dialog';
 import { useLayoutEffect, useState } from 'react';
 
-type WrapperProps = DialogProps;
-type ContentProps = Omit<DialogContentProps, 'onAnimationEnd'> & {
+type WrapperProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  defaultOpen?: boolean;
+  children?: React.ReactNode;
+};
+
+type ContentProps = {
+  className?: string;
+  children?: React.ReactNode;
   onAnimationEnd?: (...args: any[]) => void;
 };
+
 type Options = {
   mobile: {
     Wrapper: React.ComponentType<WrapperProps>;

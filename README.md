@@ -1,48 +1,76 @@
-![hero](github.png)
-<br />
-<br />
+# pushmodal (Base UI Port)
 
-## Installation 
+A stack-based modal management library for React, built for [Base UI](https://base-ui.com/).
+
+> This is a port of the original [pushmodal](https://github.com/lindesvard/pushmodal) by [Carl Lindesvard](https://github.com/lindesvard), migrated from Radix UI to Base UI.
+
+## Why Base UI?
+
+Base UI is an unstyled component library from the MUI team that provides accessible, fully customizable primitives. This port allows you to use pushmodal's powerful modal management with Base UI's Dialog and [vaul-base](https://github.com/borabaloglu/vaul-base) Drawer components.
+
+## Installation
 
 ```bash
-pnpm add pushmodal
+pnpm add pushmodal @base-ui/react
 ```
 
-> We take for granted that you already have `@radix-ui/react-dialog` installed. If not ➡️ `pnpm add @radix-ui/react-dialog`
+For drawer support, also install:
+
+```bash
+pnpm add vaul-base
+```
 
 ## Usage
 
 #### 1. Create a modal
 
-When creating a dialog/sheet/drawer you need to wrap your component with the `<(Dialog|Sheet|Drawer)Content>` component. But skip the `Root` since we do that for you.
+When creating a dialog/sheet/drawer you need to wrap your component with the appropriate content component. Skip the `Root` since pushmodal handles that for you.
 
 ```tsx
 // file: src/modals/modal-example.tsx
-import { DialogContent } from '@/ui/dialog' // shadcn dialog
-
-// or any of the below
-// import { SheetContent } from '@/ui/sheet' // shadcn sheet
-// import { DrawerContent } from '@/ui/drawer' // shadcn drawer
+import { Dialog } from '@base-ui/react/dialog';
 
 export default function ModalExample({ foo }: { foo: string }) {
   return (
-    <DialogContent>
-      Your modal
-    </DialogContent>
-  )
+    <Dialog.Portal>
+      <Dialog.Backdrop className="fixed inset-0 bg-black/50" />
+      <Dialog.Popup className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg">
+        <Dialog.Title>Your modal</Dialog.Title>
+        <Dialog.Description>Modal content here: {foo}</Dialog.Description>
+        <Dialog.Close>Close</Dialog.Close>
+      </Dialog.Popup>
+    </Dialog.Portal>
+  );
 }
 ```
 
+For drawers using vaul-base:
 
-####  2. Initialize your modals
+```tsx
+// file: src/modals/drawer-example.tsx
+import { Drawer } from 'vaul-base';
+
+export default function DrawerExample() {
+  return (
+    <Drawer.Portal>
+      <Drawer.Overlay className="fixed inset-0 bg-black/50" />
+      <Drawer.Content className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg p-6">
+        Drawer content
+      </Drawer.Content>
+    </Drawer.Portal>
+  );
+}
+```
+
+#### 2. Initialize your modals
 
 ```tsx
 // file: src/modals/index.tsx (alias '@/modals')
-import ModalExample from './modal-example'
-import SheetExample from './sheet-example'
-import DrawerExample from './drawer-examle'
-import { createPushModal } from 'pushmodal'
-import { Drawer } from '@/ui/drawer' // shadcn drawer
+import ModalExample from './modal-example';
+import SheetExample from './sheet-example';
+import DrawerExample from './drawer-example';
+import { createPushModal } from 'pushmodal';
+import { Drawer } from 'vaul-base';
 
 export const {
   pushModal,
@@ -51,178 +79,188 @@ export const {
   replaceWithModal,
   useOnPushModal,
   onPushModal,
-  ModalProvider
+  ModalProvider,
 } = createPushModal({
   modals: {
-    // Short hand
+    // Short hand - uses Dialog.Root from @base-ui/react as wrapper
     ModalExample,
     SheetExample,
 
-    // Longer definition where you can choose what wrapper you want
-    // Only needed if you don't want `Dialog.Root` from '@radix-ui/react-dialog'
-    // shadcn drawer needs a custom Wrapper
+    // Longer definition for custom wrappers (e.g., vaul-base Drawer)
     DrawerExample: {
-      Wrapper: Drawer,
-      Component: DrawerExample
-    }
+      Wrapper: Drawer.Root,
+      Component: DrawerExample,
+    },
   },
-})
+});
 ```
 
-How we usually structure things
+Recommended project structure:
 
-```md
+```
 src
 ├── ...
 ├── modals
 │   ├── modal-example.tsx
 │   ├── sheet-example.tsx
-│   ├── drawer-examle.tsx
+│   ├── drawer-example.tsx
 │   ├── ... more modals here ...
 │   └── index.tsx
 ├── ...
 └── ...
 ```
 
-#### 3. Add the `<ModalProvider />` to your root file.
+#### 3. Add the `<ModalProvider />` to your root file
 
-```ts
-import { ModalProvider } from '@/modals' 
+```tsx
+import { ModalProvider } from '@/modals';
 
 export default function App({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* Notice! You should not wrap your children */}
+      {/* Notice! You should not wrap your children */}
       <ModalProvider />
       {children}
     </>
-  )
+  );
 }
 ```
 
 #### 4. Use `pushModal`
 
-`pushModal` can have 1-2 arguments
+`pushModal` accepts 1-2 arguments:
 
-1. `name` - name of your modal 
-2. `props` (might be optional) - props for your modal, types are infered from your component!
+1. `name` - name of your modal
+2. `props` (optional) - props for your modal, types are inferred from your component
 
 ```tsx
-import { pushModal } from '@/modals' 
+import { pushModal } from '@/modals';
 
 export default function RandomComponent() {
   return (
     <div>
-      <button onClick={() =>  pushModal('ModalExample', { foo: 'string' })}>
-        Open modal
-      </button>
-      <button onClick={() => pushModal('SheetExample')}>
-        Open Sheet
-      </button>
-      <button onClick={() => pushModal('DrawerExample')}>
-        Open Drawer
-      </button>
+      <button onClick={() => pushModal('ModalExample', { foo: 'string' })}>Open modal</button>
+      <button onClick={() => pushModal('SheetExample')}>Open Sheet</button>
+      <button onClick={() => pushModal('DrawerExample')}>Open Drawer</button>
     </div>
-  )
+  );
 }
 ```
 
-#### 4. Closing modals
+#### 5. Closing modals
 
-You can close a modal in three different ways:
+You can close modals in three different ways:
 
-- `popModal()` - will pop the last added modal
-- `popModal('Modal1')` - will pop the last added modal with name `Modal1`
-- `popAllModals()` - will close all your modals
+- `popModal()` - pops the last added modal
+- `popModal('Modal1')` - pops the last added modal with name `Modal1`
+- `popAllModals()` - closes all modals
 
-#### 5. Replacing current modal
+#### 6. Replacing current modal
 
 Replace the last pushed modal. Same interface as `pushModal`.
 
 ```ts
-replaceWithModal('SheetExample', { /* Props if any */ })
+replaceWithModal('SheetExample', {
+  /* Props if any */
+});
 ```
 
-#### 6. Using events
+#### 7. Using events
 
-You can listen to events with `useOnPushModal` (inside react component) or `onPushModal` (or globally).
+Listen to modal events with `useOnPushModal` (inside React components) or `onPushModal` (globally).
 
-The event receive the state of the modal (open/closed), the modals name and props. You can listen to all modal changes with `*` or provide a name of the modal you want to listen on.
+Events receive the modal state (open/closed), name, and props. Use `*` to listen to all modals or provide a specific modal name.
 
 **Inside a component**
 
 ```tsx
-import { useCallback } from 'react'
-import { useOnPushModal } from '@/modals'
+import { useCallback } from 'react';
+import { useOnPushModal } from '@/modals';
 
-// file: a-react-component.tsx
 export default function ReactComponent() {
-  // listen to any modal open/close
-  useOnPushModal('*', 
+  // Listen to any modal open/close
+  useOnPushModal(
+    '*',
     useCallback((open, props, name) => {
       console.log('is open?', open);
       console.log('props from component', props);
       console.log('name', name);
     }, [])
-  )
-  
-  // listen to `ModalExample` open/close
-  useOnPushModal('ModalExample', 
+  );
+
+  // Listen to specific modal
+  useOnPushModal(
+    'ModalExample',
     useCallback((open, props) => {
       console.log('is `ModalExample` open?', open);
       console.log('props for ModalExample', props);
     }, [])
-  )
+  );
 }
 ```
 
 **Globally**
 
 ```ts
-import { onPushModal } from '@/modals'
+import { onPushModal } from '@/modals';
 
 const unsub = onPushModal('*', (open, props, name) => {
   // do stuff
-})
+});
 ```
 
 #### Responsive rendering (mobile/desktop)
 
-In some cases you want to show a drawer on mobile and a dialog on desktop. This is possible and we have created a helper function to get you going faster. `createResponsiveWrapper` 💪 
+Show a drawer on mobile and a dialog on desktop using `createResponsiveWrapper`:
 
 ```tsx
 // path: src/modals/dynamic.tsx
-import { createResponsiveWrapper } from 'pushmodal'
-import { Dialog, DialogContent } from '@/ui/dialog'; // shadcn dialog
-import { Drawer, DrawerContent } from '@/ui/drawer'; // shadcn drawer
+import { createResponsiveWrapper } from 'pushmodal';
+import { Dialog } from '@base-ui/react/dialog';
+import { Drawer } from 'vaul-base';
+
+// Create your styled content components
+const DialogContent = ({ children }: { children: React.ReactNode }) => (
+  <Dialog.Portal>
+    <Dialog.Backdrop className="fixed inset-0 bg-black/50" />
+    <Dialog.Popup className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg">
+      {children}
+    </Dialog.Popup>
+  </Dialog.Portal>
+);
+
+const DrawerContent = ({ children }: { children: React.ReactNode }) => (
+  <Drawer.Portal>
+    <Drawer.Overlay className="fixed inset-0 bg-black/50" />
+    <Drawer.Content className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg p-6">
+      {children}
+    </Drawer.Content>
+  </Drawer.Portal>
+);
 
 export default createResponsiveWrapper({
   desktop: {
-    Wrapper: Dialog,
+    Wrapper: Dialog.Root,
     Content: DialogContent,
   },
   mobile: {
-    Wrapper: Drawer,
+    Wrapper: Drawer.Root,
     Content: DrawerContent,
   },
   breakpoint: 640,
 });
 
 // path: src/modals/your-modal.tsx
-import * as Dynamic from './dynamic'
+import * as Dynamic from './dynamic';
 
 export default function YourModal() {
-  return (
-    <Dynamic.Content>
-      Drawer in mobile and dialog on desktop 🤘
-    </Dynamic.Content>
-  )
+  return <Dynamic.Content>Drawer on mobile, dialog on desktop</Dynamic.Content>;
 }
 
 // path: src/modals/index.ts
-import * as Dynamic from './dynamic'
-import YourModal from './your-modal'
-import { createPushModal } from 'pushmodal'
+import * as Dynamic from './dynamic';
+import YourModal from './your-modal';
+import { createPushModal } from 'pushmodal';
 
 export const {
   pushModal,
@@ -231,22 +269,52 @@ export const {
   replaceWithModal,
   useOnPushModal,
   onPushModal,
-  ModalProvider
+  ModalProvider,
 } = createPushModal({
   modals: {
     YourModal: {
       Wrapper: Dynamic.Wrapper,
-      Component: YourModal
-    }
+      Component: YourModal,
+    },
   },
-})
+});
 ```
 
-## Issues / Limitations
+## API Reference
 
-Issues or limitations will be listed here.
+### `createPushModal(options)`
 
-## Contributors
+Creates the modal system. Returns:
 
-- [lindesvard](https://github.com/lindesvard)
-- [nicholascostadev](https://github.com/nicholascostadev)
+- `ModalProvider` - React component to render at root level
+- `pushModal(name, props?)` - Open a modal by name
+- `popModal(name?)` - Close the last modal or a specific one
+- `popAllModals()` - Close all modals
+- `replaceWithModal(name, props?)` - Replace current modal
+- `onPushModal(name, callback)` - Global event listener
+- `useOnPushModal(name, callback)` - React hook event listener
+
+### `createResponsiveWrapper(options)`
+
+Creates responsive wrapper components for mobile/desktop switching.
+
+## Migration from Radix UI version
+
+If you're migrating from the original pushmodal (Radix UI version):
+
+1. Replace `@radix-ui/react-dialog` with `@base-ui/react`
+2. Replace `vaul` with `vaul-base`
+3. Update your modal components to use Base UI primitives:
+   - `Dialog.Content` -> `Dialog.Popup`
+   - `Dialog.Overlay` -> `Dialog.Backdrop`
+   - Data attributes: `data-[state=open]` -> `data-open`
+
+## Credits
+
+- Original [pushmodal](https://github.com/lindesvard/pushmodal) by [Carl Lindesvard](https://github.com/lindesvard)
+- [Base UI](https://base-ui.com/) by MUI team
+- [vaul-base](https://github.com/borabaloglu/vaul-base) by [Bora Baloglu](https://github.com/borabaloglu)
+
+## License
+
+MIT

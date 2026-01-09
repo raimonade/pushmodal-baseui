@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import mitt, { Handler } from 'mitt';
-import * as Dialog from '@radix-ui/react-dialog';
+import { Dialog } from '@base-ui/react/dialog';
 
 interface CreatePushModalOptions<T> {
   modals: {
