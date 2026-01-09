@@ -1,6 +1,6 @@
 # dependencies
 /node_modules
-/dist
+#/dist - iterating for now
 /lib
 /coverage
 .nyc_output
